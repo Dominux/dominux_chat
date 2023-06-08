@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: "dominux-chat-db"
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: "dominux_chat"
+      POSTGRES_USER: "dominux_chat"
+      POSTGRES_PASSWORD: "lmao"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./volumes/postgres_data:/var/lib/postgresql/data/
