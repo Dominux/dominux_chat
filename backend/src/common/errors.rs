@@ -1,3 +1,4 @@
+use axum::http::StatusCode;
 use sea_orm::error::DbErr;
 use serde::Serialize;
 use thiserror::Error;
@@ -33,21 +34,17 @@ impl From<DbErr> for AppError {
     }
 }
 
-// impl From<DGSError> for (StatusCode, String) {
-//     fn from(e: DGSError) -> Self {
-//         match &e {
-//             DGSError::NotFound(_) => (StatusCode::NOT_FOUND, e.to_string()),
-//             DGSError::TokenDecodingError => (StatusCode::UNAUTHORIZED, e.to_string()),
-//             DGSError::CannotAddPlayer => (StatusCode::CONFLICT, e.to_string()),
-//             DGSError::UserIsNotPlayer1 => (StatusCode::FORBIDDEN, e.to_string()),
-//             DGSError::GameAlreadyStarted => (StatusCode::CONFLICT, e.to_string()),
-//             DGSError::Player2IsNone => (StatusCode::CONFLICT, e.to_string()),
-//             _ => (
-//                 StatusCode::INTERNAL_SERVER_ERROR,
-//                 "Something went wrong".to_owned(),
-//             ),
-//         }
-//     }
-// }
+impl From<AppError> for (StatusCode, String) {
+    fn from(e: AppError) -> Self {
+        match &e {
+            AppError::NotFound(_) => (StatusCode::NOT_FOUND, e.to_string()),
+            AppError::TokenDecodingError => (StatusCode::UNAUTHORIZED, e.to_string()),
+            _ => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Something went wrong".to_owned(),
+            ),
+        }
+    }
+}
 
 pub type AppResult<T> = Result<T, AppError>;

@@ -1,0 +1,43 @@
+use std::sync::Arc;
+
+use axum::Router;
+use tower_http::{
+    cors,
+    trace::{self, TraceLayer},
+};
+use tracing::Level;
+
+use crate::{
+    apps::users::routers::UsersRouter,
+    common::{app_state::AppState, config::Mode},
+};
+
+pub fn create_app(app_state: Arc<AppState>) -> Router {
+    let dgs_cors = cors::CorsLayer::new()
+        .allow_methods(cors::Any)
+        .allow_headers(cors::Any)
+        .allow_origin(
+            app_state
+                .config
+                .allowed_origins
+                .iter()
+                .map(|origin| origin.parse().unwrap())
+                .collect::<Vec<_>>(),
+        );
+
+    let mode = app_state.config.mode.clone();
+
+    let router = Router::new()
+        .nest("/users", UsersRouter::get_router(app_state.clone()))
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
+                .on_response(trace::DefaultOnResponse::new().level(Level::INFO)),
+        );
+
+    if matches!(mode, Mode::Dev) {
+        router.layer(dgs_cors)
+    } else {
+        router
+    }
+}
